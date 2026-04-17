@@ -1,0 +1,17 @@
+name: Deploy Sports app
+
+on:
+    push:
+        branches:
+            - main
+
+jobs:
+    steps:
+        - name:  lint
+          uses:  test
+
+        - name: build
+          uses: build container
+
+        - name: deploy
+          uses: deploy to educloud
