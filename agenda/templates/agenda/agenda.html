@@ -1,0 +1,56 @@
+{% extends 'main.html' %}
+{% load static %}
+
+{% block content %}
+<h2>Agenda — week of {{ week_start|date:"D, j M Y" }}</h2>
+
+<form method="get" id="agenda-filters">
+	<label for="crew-select">Show:</label>
+	<select name="crew" id="crew-select" onchange="document.getElementById('agenda-filters').submit()">
+		<option value="personal" {% if selected_crew == 'personal' %}selected{% endif %}>Personal agenda</option>
+		{% for crew in crews %}
+			<option value="{{ crew.id }}" {% if selected_crew == crew.id|stringformat:"s" %}selected{% endif %}>{{ crew.name }}</option>
+		{% endfor %}
+	</select>
+	<input type="hidden" name="start" value="{{ week_start_iso }}">
+</form>
+
+<p>
+	<a href="?start={{ week_prev_iso }}&crew={{ selected_crew }}">◀ Previous week</a>
+	&nbsp;|&nbsp;
+    <a href="{% url 'agenda' %}">Current week</a>
+    &nbsp;|&nbsp;
+	<a href="?start={{ week_next_iso }}&crew={{ selected_crew }}">Next week ▶</a>
+</p>
+
+<table class="calendar" border="1" cellspacing="0" cellpadding="6" style="width:100%; border-collapse:collapse">
+	<thead>
+		<tr>
+			<th style="width:60px">Hour</th>
+			{% for day in week_map %}
+				<th>{{ day.date|date:"D j M" }}</th>
+			{% endfor %}
+		</tr>
+	</thead>
+	<tbody>
+		{% for h in hours %}
+			<tr>
+				<td style="vertical-align:top">{{ h }}:00</td>
+				{% for day in week_map %}
+					<td style="height:60px; vertical-align:top">
+						{% for t in day.trainings %}
+							{% if t.start.hour == h %}
+								<div style="border-left:4px solid #2b6cb0; padding-left:6px; margin-bottom:4px;">
+									<strong>{{ t.title }}</strong><br>
+									<small>{{ t.start|date:"H:i" }} • {{ t.crew.name }}</small>
+								</div>
+							{% endif %}
+						{% empty %}
+						{% endfor %}
+					</td>
+				{% endfor %}
+			</tr>
+		{% endfor %}
+	</tbody>
+</table>
+{% endblock content %}

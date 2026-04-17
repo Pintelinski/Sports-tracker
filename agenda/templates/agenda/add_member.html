@@ -1,0 +1,41 @@
+{% extends 'main.html' %}
+
+{% block content %}
+
+<h2>Crew members of {{ crew.name }}:</h2>
+<h3>
+{% for member in members %}
+    <a href="{% url 'user-profile' member.profile.id %}"><li>{{ member.profile }} - {{ member.role }}</li></a>
+    <br>
+{% endfor %}
+</h3>
+
+<h3>Add members</h3>
+<form method="POST">
+    {% csrf_token %}
+
+    {% if profiles %}
+        {% for user in profiles %}
+            <div>
+                <label>
+                    <input type="checkbox" name="profile_ids" value="{{ user.id }}">
+                    <a href="{% url 'user-profile' user.id %}">{{ user.name|default:user.user.username }}</a>
+                </label>
+                <label>
+                    Role:
+                    <select name="role_{{ user.id }}">
+                        {% for role_value, role_label in role_choices %}
+                            <option value="{{ role_value }}" {% if role_value == 'athlete' %}selected{% endif %}>{{ role_label }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+            </div>
+        {% endfor %}
+
+        <button type="submit">Add selected members</button>
+    {% else %}
+        <p>There are no available profiles to add.</p>
+    {% endif %}
+</form>
+
+{% endblock content %}

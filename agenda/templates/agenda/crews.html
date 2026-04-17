@@ -1,0 +1,21 @@
+{% extends 'main.html' %}
+
+{% block content %}
+<p>Crews:</p>
+<p><a href="{% url 'create-crew' %}">Create a crew</a></p>
+
+{% for crew in crews %}
+
+        <div class="column">
+            <div class="card crew">
+                <a href="{% url 'crew-info' crew.id %}" class="crew">
+                    <div class="card__body">
+                    <h3 class="crew__title">{{crew.name}}</h3>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+{% endfor %}
+
+{% endblock content %}
