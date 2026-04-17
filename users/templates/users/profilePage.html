@@ -1,0 +1,23 @@
+{% extends 'main.html' %}
+{% block content %}
+
+    <a href="{% url 'agenda' %}" onclick="if (window.history.length > 1) { window.history.back(); return false; }">&#10094; Back</a>
+    <h2>Profile page</h2>
+    {% if request.user.is_authenticated %}
+    <a href="{% url 'editProfile' %}">Edit profile</a>
+    {% endif %}
+    <img src="{{ profile.profile_image.url }}" />
+    <h2>{{profile.name}}</h2>
+    <p>Email: {{profile.email}}</p>
+    <p>Based in {{profile.location}}</p>
+    <p>Gender: {{profile.gender}}</p>
+    <p>Date of birth: {{profile.dateOfBirth}}</p>
+    <p>Member of the following crews:</p>
+    {% for crew in crews %}
+    <a href="{% url 'crew-info' crew.id %}" class="crew">
+        <p class="crew__title">{{crew.name}}</p>
+    </a>
+    {% endfor %}
+
+
+{% endblock content %}

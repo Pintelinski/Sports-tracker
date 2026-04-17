@@ -1,0 +1,44 @@
+{% extends 'second.html' %}
+{% load static %}
+{% block content %}
+
+
+    <div>
+        <div>
+            <a href="{% url 'landingPage' %}">&#10094; Back</a>
+            <h3>Account Register</h3>
+            <p>Create a new athlete account</p>
+        </div>
+
+        <form action="{% url 'register' %}" method="POST">
+            {% csrf_token %}
+
+            {% for field in form %}
+
+            <!-- Input:Text -->
+            <div>
+                <label for="formInput#text">{{ field.label }}: </label>
+                {{ field }}
+
+                <!--{% if field.help_text %}
+                <small>{{ field.help_text }}</small>
+                {% endif %}-->
+
+                {% for error in field.errors %}
+                <p style="color: red;">{{ error }}</p>
+                {% endfor %}
+            </div>
+
+            {% endfor %}
+
+            <div>
+                <input class="btn btn--sub btn--lg" type="submit" value="Sign up" />
+            </div>
+        </form>
+        <div>
+            <p>Already have an Account?</p>
+            <a href="{% url 'login' %}">Log In</a>
+        </div>
+    </div>
+
+{% endblock content %}

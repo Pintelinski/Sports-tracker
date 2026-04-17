@@ -1,0 +1,39 @@
+{% extends 'main.html' %}
+{% block content %}
+
+    <div>
+        <div>
+            <a href="{% url 'profile' %}">&#10094; Back
+            </a>
+            <h3>Edit profile</h3>
+        </div>
+
+        <form action="" method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            {% for field in form %}
+
+            <!-- Input:Text -->
+            <div>
+                <label for="formInput#text">{{ field.label }}: </label>
+                {{ field }}
+
+                <!--{% if field.help_text %}
+                <small>{{ field.help_text }}</small>
+                {% endif %}-->
+
+                {% for error in field.errors %}
+                <p style="color: red;">{{ error }}</p>
+                {% endfor %}
+            </div>
+
+            {% endfor %}
+
+            <div>
+                <input class="btn btn--sub btn--lg" type="submit" value="Save" />
+            </div>
+        </form>
+    </div>
+
+
+{% endblock content %}

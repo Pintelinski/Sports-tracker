@@ -1,0 +1,18 @@
+{% extends 'main.html' %}
+{% block content %}
+
+
+
+<h2>Crew members of {{ crew.name }}:</h2>
+<h3>
+{% for member in members %}
+    <a href="{% url 'user-profile' member.profile.id %}"><li>{{ member.profile }} - {{ member.role }}</li></a>
+    <br>
+{% endfor %}
+</h3>
+
+{% if request.user.is_authenticated %}
+<a href="{% url 'add-member-to-crew' crew.id %}"><h5>Add members</h5></a>
+{% endif %}
+
+{% endblock content %}
