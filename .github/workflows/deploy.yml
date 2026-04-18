@@ -57,7 +57,7 @@ jobs:
           port: ${{ secrets.PORT }}
           script: |
             set -e
-            cd home/apps/Sports-tracker
+            cd /home/apps/Sports-tracker
             git fetch origin
             git reset --hard origin/main
             sudo docker compose up -d --build
