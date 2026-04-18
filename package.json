@@ -2,5 +2,8 @@
 	"name": "sports-tracker",
 	"version": "1.0.0",
 	"private": true,
-	"description": "Sports Tracker build config for Docker pipeline"
+	"description": "Sports Tracker build config for Docker pipeline",
+    "scripts": {
+        "build": "vite build"
+    }
 }
