@@ -1,13 +1,14 @@
-FROM node:25.8.1-alpine3.23 AS build
+FROM python:3.11-slim
 
 WORKDIR /app
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
 COPY . .
 
-RUN npm install
-RUN npm run build
+RUN python manage.py collectstatic --noinput
 
-FROM nginx:alpine
+EXPOSE 8000
 
-COPY --from=build /app/dist /usr/share/nginx/html
-
-EXPOSE 80
+CMD ["gunicorn", "Sports-tracker.wsgi:application", "--bind", "0.0.0.0:8000"]

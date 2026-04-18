@@ -3,7 +3,8 @@
 	"version": "1.0.0",
 	"private": true,
 	"description": "Sports Tracker build config for Docker pipeline",
-    "scripts": {
-        "build": "vite build"
-    }
+	"scripts": {
+        "dev": "ng serve",
+		"build": "vite build"
+	}
 }
