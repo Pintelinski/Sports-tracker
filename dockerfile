@@ -3,7 +3,7 @@ FROM node:25.8.1-alpine3.23 AS build
 WORKDIR /app
 COPY . .
 
-RUN npm ci
+RUN npm install
 RUN npm run build
 
 FROM nginx:alpine
