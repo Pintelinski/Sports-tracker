@@ -1,0 +1,11 @@
+# Python app requirements (for local Django tooling / checks)
+Django>=5.2,<6.0
+Pillow>=10.0
+gunicorn>=21.2
+
+# VM/runtime requirements (installed on EduCloud VM)
+# - nodejs (Node 25.x recommended)
+# - npm
+# - nginx
+# - docker
+# - docker compose plugin
