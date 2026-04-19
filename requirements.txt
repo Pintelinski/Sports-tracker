@@ -2,6 +2,7 @@
 Django>=5.2,<6.0
 Pillow>=10.0
 gunicorn>=21.2
+python-dotenv>=1.0
 
 # VM/runtime requirements (installed on EduCloud VM)
 # - nodejs (Node 25.x recommended)
