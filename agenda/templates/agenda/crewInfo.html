@@ -12,7 +12,7 @@
 </h3>
 
 {% if request.user.is_authenticated %}
-<a href="{% url 'add-member-to-crew' crew.id %}"><h5>Add members</h5></a>
+<a href="{% url 'add-member-to-crew' crew.id %}"><p>Add members</p></a>
 {% endif %}
 
 {% endblock content %}

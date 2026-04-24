@@ -3,10 +3,10 @@
 
     <a href="{% url 'agenda' %}" onclick="if (window.history.length > 1) { window.history.back(); return false; }">&#10094; Back</a>
     <h2>Profile page</h2>
-    {% if request.user.is_authenticated %}
+    {% if is_owner %}
     <a href="{% url 'editProfile' %}">Edit profile</a>
     {% endif %}
-    <img src="{{ profile.profile_image.url }}" />
+    <img src="{{ profile.profile_image.url }}" class="img"/>
     <h2>{{profile.name}}</h2>
     <p>Email: {{profile.email}}</p>
     <p>Based in {{profile.location}}</p>

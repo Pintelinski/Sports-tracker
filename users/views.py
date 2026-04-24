@@ -72,7 +72,7 @@ def profilePage(request):
     profile = request.user.profiles
     crews = profile.crews.all()
 
-    context = {'profile': profile, 'crews': crews}
+    context = {'profile': profile, 'crews': crews, 'is_owner': True}
     return render(request, 'users/profilePage.html', context)
 
 
@@ -80,12 +80,6 @@ def profilePage(request):
 def editProfile(request):
     profile = request.user.profiles
     form = ProfileForm(instance=profile)
-
-    # keep editing restricted to owner
-    if profile.user != request.user:
-        messages.error(request, 'You can only edit your own profile.')
-        return redirect('agenda')
-
 
     if request.method == 'POST':
         form = ProfileForm(request.POST, request.FILES, instance=profile)
@@ -101,6 +95,7 @@ def editProfile(request):
 def userProfile(request, pk):
     profile = Profiles.objects.get(id=pk)
     crews = profile.crews.all()
+    is_owner = request.user.is_authenticated and profile.user_id == request.user.id
 
-    context = {'profile': profile, 'crews': crews}
+    context = {'profile': profile, 'crews': crews, 'is_owner': is_owner}
     return render(request, 'users/profilePage.html', context)

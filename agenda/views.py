@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.utils import timezone
 from datetime import timedelta, datetime, date
@@ -16,13 +16,6 @@ def bodystats(request):
 
 @login_required(login_url='login')
 def agenda(request):
-    """Render a weekly agenda view with hour slots and trainings.
-
-    Query params:
-    - start: YYYY-MM-DD date for Monday of the week to show (optional)
-    - crew: 'all', 'personal', or a Crew id to filter trainings
-    """
-    # determine week start (Monday)
     today = timezone.localdate()
     start_str = request.GET.get('start')
     try:
@@ -36,10 +29,8 @@ def agenda(request):
     week_days = [week_start + timedelta(days=i) for i in range(7)]
     week_end = week_start + timedelta(days=6)
 
-    # hours to display (adjustable)
-    hours = list(range(0, 24))
+    hours = list(range(6, 24))
 
-    # crew filtering
     crew_param = request.GET.get('crew', 'personal')
     trainings_qs = Training.objects.filter(datetime__date__gte=week_start, datetime__date__lte=week_end).select_related('crew')
 
@@ -52,15 +43,12 @@ def agenda(request):
             except Profiles.DoesNotExist:
                 trainings_qs = trainings_qs.none()
         else:
-            # try to filter by specific crew id
             try:
                 crew_obj = Crew.objects.get(id=crew_param)
                 trainings_qs = trainings_qs.filter(crew=crew_obj)
             except Exception:
-                # invalid crew param -> no trainings
                 trainings_qs = trainings_qs.none()
 
-    # organize trainings by date (keys are ISO strings for template indexing)
     trainings_by_date = {d.isoformat(): [] for d in week_days}
     for t in trainings_qs:
         local_dt = timezone.localtime(t.datetime)
@@ -74,7 +62,6 @@ def agenda(request):
                 'crew': t.crew,
             })
 
-    # list of crews to show in the selector: for logged-in users show their crews
     if request.user.is_authenticated:
         try:
             profile = Profiles.objects.get(user=request.user)
@@ -82,10 +69,8 @@ def agenda(request):
         except Profiles.DoesNotExist:
             crews_for_selector = Crew.objects.none()
     else:
-        # anonymous users: show no personal crews (could be adjusted to show all)
         crews_for_selector = Crew.objects.none()
 
-    # prepare a list of dicts pairing each day with its trainings for easy template iteration
     week_map = []
     for d in week_days:
         key = d.isoformat()
@@ -94,7 +79,6 @@ def agenda(request):
             'trainings': trainings_by_date.get(key, [])
         })
 
-    # ISO strings for use in URLs/templates
     week_start_iso = week_start.isoformat()
     week_prev_iso = (week_start - timedelta(days=7)).isoformat()
     week_next_iso = (week_start + timedelta(days=7)).isoformat()
@@ -131,12 +115,13 @@ def createCrew(request):
     if request.method == 'POST':
         form = CrewForm(request.POST)
         if form.is_valid():
-            crew = form.save()
-            CrewMembership.objects.create(
-                profile=profile,
-                crew=crew,
-                role=form.cleaned_data['role'],
-            )
+            crew = form.save(commit=False)
+            crew._pending_member_profile = profile
+            crew._pending_member_role = form.cleaned_data['role']
+            crew.save()
+
+            messages.success(request, 'Crew was created succesfully')
+
             return redirect('crews')
 
 
@@ -148,15 +133,7 @@ def crewInfo(request, pk):
     crew = Crew.objects.get(id=pk)
     members = CrewMembership.objects.filter(crew=crew).select_related('profile')
 
-    can_add_members = False
-    if request.user.is_authenticated:
-        try:
-            current_profile = request.user.profiles
-            can_add_members = members.filter(profile=current_profile).exists()
-        except Profiles.DoesNotExist:
-            can_add_members = False
-
-    context = {'crew': crew, 'members': members, 'can_add_members': can_add_members}
+    context = {'crew': crew, 'members': members}
     return render(request, 'agenda/crewInfo.html', context)
 
 
@@ -165,54 +142,37 @@ def addMemberToCrew(request, pk):
     crew = Crew.objects.get(id=pk)
     members = CrewMembership.objects.filter(crew=crew).select_related('profile')
 
-    try:
-        current_profile = request.user.profiles
-    except Profiles.DoesNotExist:
-        messages.error(request, 'No profile found for this account.')
-        return redirect('crew-info', pk=pk)
-
-    if not members.filter(profile=current_profile).exists():
-        messages.error(request, 'Only crew members can add other members.')
-        return redirect('crew-info', pk=pk)
-
-    member_profile_ids = members.values_list('profile_id', flat=True)
-    profiles = Profiles.objects.exclude(id__in=member_profile_ids)
-    role_choices = CrewMembership.ROLE_CHOICES
-    allowed_roles = {key for key, _ in role_choices}
-
     if request.method == 'POST':
-        selected_profile_ids = request.POST.getlist('profile_ids')
+        selected_ids = request.POST.getlist('profile_ids')
+        valid_roles = {value for value, _ in CrewMembership.ROLE_CHOICES}
 
-        if not selected_profile_ids:
-            messages.warning(request, 'Select at least one profile to add.')
-            return redirect('add-member-to-crew', pk=pk)
+        added = 0
+        for pid in selected_ids:
+            try:
+                profile = Profiles.objects.get(id=pid)
+            except Profiles.DoesNotExist:
+                continue
 
-        added_count = 0
-        for profile in profiles.filter(id__in=selected_profile_ids):
-            selected_role = request.POST.get(f'role_{profile.id}', 'athlete')
-            if selected_role not in allowed_roles:
-                selected_role = 'athlete'
+            role = request.POST.get(f'role_{pid}', 'athlete')
+            if role not in valid_roles:
+                role = 'athlete'
 
-            membership, created = CrewMembership.objects.get_or_create(
-                crew=crew,
-                profile=profile,
-                defaults={'role': selected_role},
-            )
+            crew._pending_member_profile = profile
+            crew._pending_member_role = role
+            crew.save()
+            added += 1
 
-            if not created and membership.role != selected_role:
-                membership.role = selected_role
-                membership.save(update_fields=['role'])
-
-            if created:
-                added_count += 1
-
-        if added_count:
-            messages.success(request, f'Added {added_count} member(s) to {crew.name}.')
+        if added:
+            messages.success(request, f'{added} member(s) added to {crew.name}')
         else:
-            messages.info(request, 'No new members were added.')
+            messages.info(request, 'No new members were added')
 
-        return redirect('crew-info', pk=pk)
+        return redirect('crew-info', crew.id)
 
+    existing_profile_ids = members.values_list('profile_id', flat=True)
+    profiles = Profiles.objects.exclude(id__in=existing_profile_ids)
 
-    context = {'crew': crew, 'profiles': profiles, 'members': members, 'role_choices': role_choices}
+    roles = CrewMembership.ROLE_CHOICES
+
+    context = {'crew': crew, 'profiles': profiles, 'members': members, 'roles': roles}
     return render(request, 'agenda/add_member.html', context)

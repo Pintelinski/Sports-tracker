@@ -11,26 +11,34 @@
 </h3>
 
 <h3>Add members</h3>
-<form method="POST">
+<form method="POST" class="add-member-form">
     {% csrf_token %}
 
     {% if profiles %}
+        <ul class="profile-picker">
         {% for user in profiles %}
-            <div>
-                <label>
-                    <input type="checkbox" name="profile_ids" value="{{ user.id }}">
-                    <a href="{% url 'user-profile' user.id %}">{{ user.name|default:user.user.username }}</a>
+            <li class="profile-picker__row">
+                <input type="checkbox"
+                       id="profile-{{ user.id }}"
+                       name="profile_ids"
+                       value="{{ user.id }}"
+                       class="profile-picker__check">
+                <label for="profile-{{ user.id }}" class="profile-picker__label">
+                    {{ user.name|default:user.user.username }}
                 </label>
-                <label>
-                    Role:
-                    <select name="role_{{ user.id }}">
-                        {% for role_value, role_label in role_choices %}
-                            <option value="{{ role_value }}" {% if role_value == 'athlete' %}selected{% endif %}>{{ role_label }}</option>
-                        {% endfor %}
-                    </select>
-                </label>
-            </div>
+
+                <div class="profile-picker__role" onclick="event.stopPropagation()">
+                    <label>Role:
+                        <select name="role_{{ user.id }}">
+                            {% for value, label in roles %}
+                                <option value="{{ value }}">{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </label>
+                </div>
+            </li>
         {% endfor %}
+        </ul>
 
         <button type="submit">Add selected members</button>
     {% else %}
