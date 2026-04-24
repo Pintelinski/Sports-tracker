@@ -1,0 +1,716 @@
+/* =========================================================
+   Sports Tracker — app.css
+   Palette: turquoise (main), lime (accent/success), orange (action/sub)
+   ========================================================= */
+
+:root {
+    /* Main – turquoise */
+    --color-main: #14b8a6;
+    --color-main-dark: #0f766e;
+    --color-main-light: #ccfbf1;
+
+    /* Sub – orange (actions, highlights) */
+    --color-sub: #f97316;
+    --color-sub-dark: #c2410c;
+    --color-sub-light: #ffedd5;
+
+    /* Accent – lime (success, tags) */
+    --color-accent: #a3e635;
+    --color-accent-dark: #65a30d;
+    --color-accent-light: #ecfccb;
+
+    /* Neutrals */
+    --color-bg: #f4f7f8;
+    --color-surface: #ffffff;
+    --color-text: #1f2937;
+    --color-text-muted: #64748b;
+    --color-border: #e2e8f0;
+    --color-white-light: #f1f5f9;
+
+    /* Feedback */
+    --color-error: #b91c1c;
+    --color-error-bg: #fee2e2;
+    --color-success: var(--color-accent-dark);
+    --color-success-bg: var(--color-accent-light);
+
+    /* Misc */
+    --radius: 8px;
+    --radius-sm: 4px;
+    --shadow: 0 2px 6px rgba(15, 118, 110, 0.08);
+    --shadow-lg: 0 10px 25px rgba(15, 118, 110, 0.12);
+    --font-medium: 500;
+    --generic-transition: all 0.18s ease-in-out;
+}
+
+/* Makes 1rem = 10px so rem values in the layout are easier to read */
+html {
+    font-size: 62.5%;
+}
+
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, "Helvetica Neue", sans-serif;
+    font-size: 1.5rem;
+    line-height: 1.5;
+    color: var(--color-text);
+    background: var(--color-bg);
+
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+main {
+    flex: 1 0 auto;
+    width: 92%;
+    max-width: 110rem;
+    margin: 0 auto;
+}
+
+h1, h2, h3, h4, h5 {
+    margin: 0 0 1.2rem;
+    color: var(--color-main-dark);
+    font-weight: 700;
+    line-height: 1.25;
+}
+
+h1 { font-size: 3.6rem; }
+h2 { font-size: 2.8rem; }
+h3 { font-size: 2.2rem; }
+h4 { font-size: 1.8rem; }
+
+p { margin: 0.6rem 0; }
+
+a {
+    color: var(--color-main-dark);
+    text-decoration: none;
+    transition: var(--generic-transition);
+}
+
+a:hover {
+    color: var(--color-sub);
+}
+
+img { max-width: 100%; }
+
+ul { padding-left: 0; }
+li { list-style: none; }
+
+/* =========================================================
+   Layout
+   ========================================================= */
+
+.container,
+.content-box {
+    width: 92%;
+    max-width: 120rem;
+    margin: 0 auto;
+}
+
+.container--narrow {
+    max-width: 110rem;
+}
+
+main, body > .alert + *,
+body > section {
+    padding: 2rem 0;
+}
+
+
+/* =========================================================
+   Header / Navbar
+   ========================================================= */
+
+.header {
+    position: sticky;
+    top: 0;
+    z-index: 200;
+    background: var(--color-main-dark);
+    box-shadow: var(--shadow);
+    padding: 1.2rem 0;
+    margin-bottom: 2.5rem;
+}
+
+.header > .container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+}
+
+.header__logo {
+    color: white;
+    font-weight: 700;
+    font-size: 2rem;
+    letter-spacing: 0.03em;
+}
+
+
+.header__nav { display: flex; }
+
+.header__menu {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin: 0;
+}
+
+.header__menuItem a {
+    display: inline-block;
+    padding: 0.7rem 1.4rem;
+    border-radius: var(--radius);
+    color: white;
+    font-weight: 500;
+    font-size: 1.5rem;
+    transition: var(--generic-transition);
+}
+
+.header__menuItem a:hover {
+    background: var(--color-sub);
+    color: white;
+}
+
+@media (max-width: 760px) {
+    .header > .container { flex-direction: column; align-items: flex-start; }
+    .header__menu { flex-wrap: wrap; }
+    .header__menuItem a { padding: 0.5rem 0.9rem; font-size: 1.35rem; }
+}
+
+/* =========================================================
+   Cards
+   ========================================================= */
+
+.card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 2rem;
+    transition: var(--generic-transition);
+}
+
+.card:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+}
+
+.card__body { padding: 0.5rem 0; }
+
+/* A simple 3-column grid for crews/profiles lists */
+body > .column,
+.column {
+    display: inline-block;
+    vertical-align: top;
+    width: calc(33.333% - 1.2rem);
+    margin: 0.6rem;
+}
+
+@media (max-width: 900px) { .column { width: calc(50% - 1.2rem); } }
+@media (max-width: 600px) { .column { width: 100%; margin: 0.6rem 0; } }
+
+/* =========================================================
+   Buttons
+   ========================================================= */
+
+.btn,
+button,
+input[type="submit"] {
+    display: inline-block;
+    padding: 0.9rem 1.8rem;
+    border: none;
+    border-radius: var(--radius);
+    background: var(--color-main);
+    color: white;
+    font: inherit;
+    font-weight: 600;
+    font-size: 1.5rem;
+    cursor: pointer;
+    text-decoration: none;
+    transition: var(--generic-transition);
+}
+
+.btn:hover,
+button:hover,
+input[type="submit"]:hover {
+    background: var(--color-main-dark);
+    color: white;
+    transform: translateY(-1px);
+}
+
+.btn--sub,
+input[type="submit"].btn--sub {
+    background: var(--color-sub);
+}
+
+.btn--sub:hover {
+    background: var(--color-sub-dark);
+}
+
+.btn--accent {
+    background: var(--color-accent-dark);
+}
+
+.btn--accent:hover {
+    background: var(--color-accent);
+    color: var(--color-text);
+}
+
+.btn--lg {
+    padding: 1.1rem 2.4rem;
+    font-size: 1.6rem;
+}
+
+/* Action-style links — back links, add/edit/create links that aren't .btn */
+a[href*="edit"]:not(.crew):not(.header__menuItem),
+a[href*="add-"],
+a[href*="create"] {
+    display: inline-block;
+    padding: 0.6rem 1.4rem;
+    background: var(--color-sub);
+    color: white;
+    border-radius: var(--radius);
+    font-weight: 600;
+    margin: 0.3rem 0;
+}
+
+a[href*="edit"]:not(.crew):not(.header__menuItem):hover,
+a[href*="add-"]:hover,
+a[href*="create"]:hover {
+    background: var(--color-sub-dark);
+    color: white;
+}
+
+/* Back link style */
+a[href]:first-child[href*="landingPage"],
+a[onclick*="history"] {
+    display: inline-block;
+    padding: 0.4rem 0.8rem;
+    color: var(--color-main-dark);
+    font-weight: 600;
+    background: transparent !important;
+}
+
+a[onclick*="history"]:hover {
+    color: var(--color-sub);
+}
+
+/* =========================================================
+   Forms
+   ========================================================= */
+
+form {
+    background: var(--color-surface);
+    padding: 2rem;
+    border-radius: var(--radius);
+    border: 1px solid var(--color-border);
+    box-shadow: var(--shadow);
+    margin: 1rem auto;
+}
+
+.form__field {
+    margin-bottom: 1.4rem;
+}
+
+label {
+    display: block;
+    margin-bottom: 0.4rem;
+    font-weight: var(--font-medium);
+    color: var(--color-text-muted);
+    font-size: 1.4rem;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="date"],
+input[type="number"],
+input[type="file"],
+select,
+textarea,
+.input {
+    width: 100%;
+    max-width: 52rem;
+    padding: 0.9rem 1.1rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: white;
+    font: inherit;
+    font-size: 1.5rem;
+    transition: var(--generic-transition);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    outline: none;
+    border-color: var(--color-main);
+    box-shadow: 0 0 0 3px var(--color-main-light);
+}
+
+.auth__actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.auth__actions a { font-size: 1.4rem; }
+
+.auth__alternative {
+    text-align: center;
+    margin-top: 1.5rem;
+    color: var(--color-text-muted);
+    font-size: 1.4rem;
+}
+
+.auth__alternative a {
+    display: inline-block;
+    margin-top: 0.4rem;
+    font-weight: 700;
+    color: var(--color-sub);
+}
+
+.auth__alternative a:hover { color: var(--color-sub-dark); }
+
+/* =========================================================
+   Alerts / Messages
+   ========================================================= */
+
+.alert {
+    position: fixed;
+    left: 50%;
+    top: 10rem;
+    transform: translateX(-50%);
+    z-index: 99999;
+
+    display: inline-flex;
+    gap: 2rem;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 1.2rem 2rem;
+    border-radius: var(--radius);
+    border: 1px solid var(--color-border);
+    background: var(--color-main-light);
+    color: var(--color-main-dark);
+    font-size: 1.4rem;
+    font-weight: var(--font-medium);
+    box-shadow: var(--shadow-lg);
+}
+
+.alert--error {
+    background: var(--color-error-bg);
+    color: var(--color-error);
+    border-color: #fecaca;
+}
+
+.alert--success,
+.alert--info {
+    background: var(--color-success-bg);
+    color: var(--color-success);
+    border-color: #d9f99d;
+}
+
+.alert__message { margin: 0; }
+
+.alert__close {
+    background: transparent;
+    color: inherit;
+    border: none;
+    outline: none;
+    font-size: 1.8rem;
+    cursor: pointer;
+    padding: 0 0.4rem;
+}
+
+.alert__close:hover { opacity: 0.7; background: transparent; transform: none; }
+
+/* =========================================================
+   Landing page
+   ========================================================= */
+
+.landingPage {
+    margin: 4rem auto 2rem;
+    padding: 6rem 2rem;
+    text-align: center;
+    background: linear-gradient(135deg, var(--color-main) 0%, var(--color-accent) 100%);
+    color: white;
+    border-radius: 1.2rem;
+    max-width: 80rem;
+    box-shadow: var(--shadow-lg);
+}
+
+.landingPage h1 {
+    color: white;
+    font-size: 4.2rem;
+    margin-bottom: 0.8rem;
+}
+
+.landingPage p {
+    font-size: 1.8rem;
+    opacity: 0.95;
+}
+
+.loginOrRegister {
+    text-align: center;
+    margin: 3rem auto;
+}
+
+.loginOrRegister a {
+    display: inline-block;
+    margin: 0 0.6rem;
+    padding: 1rem 2.4rem;
+    background: var(--color-sub);
+    color: white;
+    font-weight: 700;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    transition: var(--generic-transition);
+}
+
+.loginOrRegister a:hover {
+    background: var(--color-sub-dark);
+    color: white;
+    transform: translateY(-2px);
+}
+
+/* =========================================================
+   Agenda calendar
+   ========================================================= */
+
+table.calendar {
+    width: 100%;
+    background: var(--color-surface);
+    border-collapse: separate !important;
+    border-spacing: 0;
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--color-border) !important;
+    margin: 1.5rem auto;
+}
+
+table.calendar th {
+    background: var(--color-main-dark);
+    color: white;
+    padding: 1rem;
+    font-weight: 700;
+    font-size: 1.4rem;
+    text-align: center;
+    border: none !important;
+}
+
+table.calendar td {
+    border: 1px solid var(--color-border) !important;
+    padding: 0.6rem !important;
+    vertical-align: top;
+    font-size: 1.3rem;
+}
+
+table.calendar tbody tr:nth-child(odd) td {
+    background: var(--color-white-light);
+}
+
+/* Training block inside calendar */
+table.calendar td > div {
+    border-left: 4px solid var(--color-sub) !important;
+    background: var(--color-sub-light);
+    padding: 0.4rem 0.6rem !important;
+    border-radius: var(--radius-sm);
+    margin-bottom: 0.4rem;
+    font-size: 1.3rem;
+}
+
+table.calendar td > div strong { color: var(--color-sub-dark); }
+
+/* Agenda navigation row */
+#agenda-filters {
+    display: inline-flex;
+    gap: 1rem;
+    align-items: center;
+    margin-right: 1rem;
+}
+
+/* =========================================================
+   Profile page
+   ========================================================= */
+
+/* profile picture */
+body img[src*="profile"],
+body img[src*="images"] {
+    width: 20rem;
+    height: 20rem;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 4px solid var(--color-main);
+    box-shadow: var(--shadow);
+    display: block;
+    margin: 1rem 0;
+}
+
+/* Crew pills */
+.crew {
+    display: inline-block;
+    padding: 0.6rem 1.2rem;
+    margin: 0.3rem 0.3rem 0.3rem 0;
+    background: var(--color-main-dark);
+    border: 1px solid var(--color-main-light);
+    color: var(--color-sub-light);
+    border-radius: 999px;
+    font-weight: 600;
+    transition: var(--generic-transition);
+}
+
+.crew:hover {
+    background: var(--color-main);
+    color: var(--color-text-muted);
+    transform: translateY(-1px);
+}
+
+.crew__title {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: inherit;
+}
+
+/* Card-style crews list (crews.html uses .card.crew) */
+.card.crew {
+    display: block;
+    padding: 0;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+}
+
+.card.crew > a {
+    display: block;
+    padding: 2rem;
+    color: inherit;
+}
+
+.card.crew .card__body h3 {
+    color: var(--color-white-light);
+    margin: 0;
+}
+
+.card.crew:hover {
+    background: var(--color-main-light);
+    border-color: var(--color-main);
+}
+
+/* =========================================================
+   Footer
+   ========================================================= */
+
+.site-footer {
+    flex-shrink: 0;
+    width: 100%;
+    margin-top: 4rem;
+    padding: 2rem 0;
+    text-align: center;
+    color: var(--color-text-muted);
+    border-top: 1px solid var(--color-border);
+}
+
+.site-footer p {
+    margin: 0;
+    font-size: 1.3rem;
+}
+
+/* =========================================================
+   Add-member profile picker
+   ========================================================= */
+
+.profile-picker {
+    margin: 1.5rem 0;
+    padding: 0;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    overflow: hidden;
+}
+
+.profile-picker__row {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.4rem;
+    border-bottom: 1px solid var(--color-border);
+    transition: var(--generic-transition);
+}
+
+.profile-picker__row:last-child {
+    border-bottom: none;
+}
+
+.profile-picker__row:hover {
+    background: var(--color-main-light);
+}
+
+/* Checkbox stays in DOM so the sibling selector still works, but is not shown */
+.profile-picker__check {
+    position: absolute;
+    flex: 1;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.profile-picker__label {
+    flex: 1;
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 500;
+    color: var(--color-text);
+    cursor: pointer;
+}
+
+/* Make the whole row clickable: label fills the row except where the role picker is */
+.profile-picker__label::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+}
+
+.profile-picker__role {
+    position: relative;
+    z-index: 2;
+}
+
+/* Role dropdown is hidden by default */
+.profile-picker__role {
+    display: none;
+    margin-left: auto;
+}
+
+.profile-picker__role select {
+    width: auto;
+    padding: 0.5rem 0.8rem;
+    font-size: 1.4rem;
+}
+
+.profile-picker__role label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin: 0;
+    color: var(--color-text-muted);
+    font-weight: 500;
+}
+
+/* Reveal the role picker when its sibling checkbox is checked */
+.profile-picker__check:checked ~ .profile-picker__role {
+    display: block;
+}
+
+/* Visual highlight for a selected row */
+.profile-picker__row:has(.profile-picker__check:checked) {
+    background: var(--color-main-light);
+}
