@@ -20,3 +20,5 @@ dist/
 # Editor
 .vscode/
 .idea/
+
+.db.sqlite3
