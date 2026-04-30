@@ -2,13 +2,14 @@
 {% block content %}
 
     <div>
+        <div class="BackButton">
+            <a href="{% url 'profile' %}">&#10094; Back</a>
+        </div>
         <div>
-            <a href="{% url 'profile' %}">&#10094; Back
-            </a>
             <h3>Edit profile</h3>
         </div>
 
-        <form action="" method="POST" enctype="multipart/form-data">
+        <form action="" method="POST" enctype="multipart/form-data" class="basicForm">
             {% csrf_token %}
 
             {% for field in form %}

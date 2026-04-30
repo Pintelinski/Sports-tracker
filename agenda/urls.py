@@ -10,4 +10,6 @@ urlpatterns = [
     path('crew/<str:pk>/', views.crewInfo, name='crew-info'),
     path('crew/<str:pk>/add-member/', views.addMemberToCrew, name='add-member-to-crew'),
 
+    path('add-training/', views.createTraining, name='create-training'),
+
 ]

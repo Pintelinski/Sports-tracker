@@ -8,6 +8,7 @@ from django.contrib import messages
 from .models import Training
 from users.models import Profiles, Crew, CrewMembership
 from users.forms import CrewForm
+from .forms import TrainingForm
 
 @login_required(login_url='login')
 def bodystats(request):
@@ -44,9 +45,10 @@ def agenda(request):
                 trainings_qs = trainings_qs.none()
         else:
             try:
-                crew_obj = Crew.objects.get(id=crew_param)
+                profile = Profiles.objects.get(user=request.user)
+                crew_obj = profile.crews.get(id=crew_param)
                 trainings_qs = trainings_qs.filter(crew=crew_obj)
-            except Exception:
+            except (Profiles.DoesNotExist, Crew.DoesNotExist):
                 trainings_qs = trainings_qs.none()
 
     trainings_by_date = {d.isoformat(): [] for d in week_days}
@@ -60,6 +62,7 @@ def agenda(request):
                 'start': local_dt,
                 'duration': t.duration,
                 'crew': t.crew,
+                'intensity': t.intensity,
             })
 
     if request.user.is_authenticated:
@@ -127,6 +130,32 @@ def createCrew(request):
 
     context = {'form': form}
     return render(request, "agenda/crew_form.html", context)
+
+
+@login_required(login_url='login')
+def createTraining(request):
+    form = TrainingForm()
+
+    if request.method == 'POST':
+        form = TrainingForm(request.POST)
+        if form.is_valid():
+            training = form.save(commit=False)
+
+            date = form.cleaned_data['date']
+            start_time = form.cleaned_data['start_time']
+            minutes = form.cleaned_data['duration_minutes']
+
+            naive_dt = datetime.combine(date, start_time)
+            training.datetime = timezone.make_aware(naive_dt, timezone.get_current_timezone())
+            training.duration = timedelta(minutes=minutes)
+
+            training.save()
+
+            messages.success(request, 'Training was created successfully')
+            return redirect('agenda')
+
+    context = {'form': form}
+    return render(request, 'agenda/add_training.html', context)
 
 
 def crewInfo(request, pk):

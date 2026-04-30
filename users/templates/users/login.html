@@ -1,13 +1,16 @@
 {% extends 'second.html' %}
-{% load static %}
+
 {% block content %}
 
-    <div>
-        <a href="{% url 'landingPage' %}">&#10094; Back</a>
-        <h3>Account Login</h3>
-        <p>Hello Athlete, Welcome Back!</p>
-    </div>
+
     <form action="{% url 'login' %}" method="POST">
+        <div class="BackButton">
+            <a href="{% url 'landingPage' %}">&#10094; Back</a>
+        </div>
+        <div>
+            <h3>Account Login</h3>
+            <p>Hello Athlete, Welcome Back!</p>
+        </div>
         {% csrf_token %}
 
         <!-- Input:Username -->
@@ -25,11 +28,12 @@
             <input class="btn btn--sub btn--lg" type="submit" value="Log In" />
             <a href="#">Forget Password?</a>
         </div>
+        <div class="auth__alternative">
+            <p>Don’t have an Account?</p>
+            <a href="{% url 'register' %}">Sign Up</a>
+        </div>
     </form>
 
-    <div class="auth__alternative">
-        <p>Don’t have an Account?</p>
-        <a href="{% url 'register' %}">Sign Up</a>
-    </div>
+
 
 {% endblock content %}

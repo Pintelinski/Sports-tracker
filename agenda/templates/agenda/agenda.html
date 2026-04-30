@@ -1,8 +1,8 @@
 {% extends 'main.html' %}
-{% load static %}
 
 {% block content %}
 <h2>Agenda — week of {{ week_start|date:"D, j M Y" }}</h2>
+
 
 <h3>
 	<form method="get" id="agenda-filters">
@@ -16,6 +16,8 @@
 		<input type="hidden" name="start" value="{{ week_start_iso }}">
 	</form>
 </h3>
+<a href="{% url 'create-training' %}">Add training</a>
+
 
 <p>
 	<a href="?start={{ week_prev_iso }}&crew={{ selected_crew }}">◀ Previous week</a>
@@ -42,7 +44,7 @@
 					<td style="height:60px; vertical-align:top">
 						{% for t in day.trainings %}
 							{% if t.start.hour == h %}
-								<div style="border-left:4px solid #2b6cb0; padding-left:6px; margin-bottom:4px;">
+								<div class="training training--{{ t.intensity|lower }}">
 									<strong>{{ t.title }}</strong><br>
 									<small>{{ t.start|date:"H:i" }} • {{ t.crew.name }}</small>
 								</div>
