@@ -1,14 +1,18 @@
 from django.shortcuts import render, redirect
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.utils import timezone
 from datetime import timedelta, datetime, date
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 
-from .models import Training
+from django.views.decorators.http import require_POST
+
+from .models import Training, Attendance
 from users.models import Profiles, Crew, CrewMembership
 from users.forms import CrewForm
 from .forms import TrainingForm
+
+ATTENDANCE_CYCLE = {'pending': 'present', 'present': 'absent', 'absent': 'pending'}
 
 @login_required(login_url='login')
 def bodystats(request):
@@ -51,6 +55,19 @@ def agenda(request):
             except (Profiles.DoesNotExist, Crew.DoesNotExist):
                 trainings_qs = trainings_qs.none()
 
+    my_attendance_by_training = {}
+    if request.user.is_authenticated:
+        try:
+            my_profile = Profiles.objects.get(user=request.user)
+            my_attendance_by_training = {
+                a.training_id: a.status
+                for a in Attendance.objects.filter(
+                    athlete=my_profile, training__in=trainings_qs
+                )
+            }
+        except Profiles.DoesNotExist:
+            pass
+
     trainings_by_date = {d.isoformat(): [] for d in week_days}
     for t in trainings_qs:
         local_dt = timezone.localtime(t.datetime)
@@ -63,6 +80,7 @@ def agenda(request):
                 'duration': t.duration,
                 'crew': t.crew,
                 'intensity': t.intensity,
+                'my_status': my_attendance_by_training.get(t.id, 'pending'),
             })
 
     if request.user.is_authenticated:
@@ -132,32 +150,6 @@ def createCrew(request):
     return render(request, "agenda/crew_form.html", context)
 
 
-@login_required(login_url='login')
-def createTraining(request):
-    form = TrainingForm()
-
-    if request.method == 'POST':
-        form = TrainingForm(request.POST)
-        if form.is_valid():
-            training = form.save(commit=False)
-
-            date = form.cleaned_data['date']
-            start_time = form.cleaned_data['start_time']
-            minutes = form.cleaned_data['duration_minutes']
-
-            naive_dt = datetime.combine(date, start_time)
-            training.datetime = timezone.make_aware(naive_dt, timezone.get_current_timezone())
-            training.duration = timedelta(minutes=minutes)
-
-            training.save()
-
-            messages.success(request, 'Training was created successfully')
-            return redirect('agenda')
-
-    context = {'form': form}
-    return render(request, 'agenda/add_training.html', context)
-
-
 def crewInfo(request, pk):
     crew = Crew.objects.get(id=pk)
     members = CrewMembership.objects.filter(crew=crew).select_related('profile')
@@ -205,3 +197,93 @@ def addMemberToCrew(request, pk):
 
     context = {'crew': crew, 'profiles': profiles, 'members': members, 'roles': roles}
     return render(request, 'agenda/add_member.html', context)
+
+@login_required(login_url='login')
+def createTraining(request):
+    form = TrainingForm()
+
+    if request.method == 'POST':
+        form = TrainingForm(request.POST)
+        if form.is_valid():
+            training = form.save(commit=False)
+
+            date = form.cleaned_data['date']
+            start_time = form.cleaned_data['start_time']
+            minutes = form.cleaned_data['duration_minutes']
+
+            naive_dt = datetime.combine(date, start_time)
+            training.datetime = timezone.make_aware(naive_dt, timezone.get_current_timezone())
+            training.duration = timedelta(minutes=minutes)
+
+            training.save()
+
+            messages.success(request, 'Training was created successfully')
+
+            return redirect('agenda')
+
+    context = {'form': form}
+    return render(request, 'agenda/add_training.html', context)
+
+@login_required(login_url='login')
+def trainingInfo(request, pk):
+    training = Training.objects.select_related('crew').get(id=pk)
+
+    memberships = CrewMembership.objects.filter(crew=training.crew).select_related('profile')
+    attendance_by_profile = {
+        a.athlete_id: a.status
+        for a in Attendance.objects.filter(training=training)
+    }
+
+    crew_attendance = [
+        {
+            'profile': m.profile,
+            'role': m.get_role_display(),
+            'status': attendance_by_profile.get(m.profile_id, 'pending'),
+        }
+        for m in memberships
+    ]
+
+    my_status = 'pending'
+    try:
+        my_profile = Profiles.objects.get(user=request.user)
+        my_status = attendance_by_profile.get(my_profile.id, 'pending')
+    except Profiles.DoesNotExist:
+        my_profile = None
+
+    context = {
+        'training': training,
+        'crew_attendance': crew_attendance,
+        'my_status': my_status,
+        'my_profile': my_profile,
+    }
+    return render(request, 'agenda/training_info.html', context)
+
+
+@login_required(login_url='login')
+@require_POST
+def toggleAttendance(request, pk):
+    training = Training.objects.get(id=pk)
+    try:
+        profile = Profiles.objects.get(user=request.user)
+    except Profiles.DoesNotExist:
+        messages.error(request, 'No profile found for your account.')
+        return redirect('agenda')
+
+    try:
+        attendance = Attendance.objects.get(training=training, athlete=profile)
+        attendance.status = ATTENDANCE_CYCLE.get(attendance.status, 'pending')
+        attendance.save()
+    except Attendance.DoesNotExist:
+        attendance = Attendance.objects.create(
+            training=training,
+            athlete=profile,
+            status='present',
+        )
+
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({'status': attendance.status})
+
+    next_url = request.POST.get('next') or request.META.get('HTTP_REFERER')
+    if next_url:
+        return redirect(next_url)
+    return redirect('agenda')

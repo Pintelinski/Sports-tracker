@@ -778,3 +778,144 @@ table.calendar tbody tr:nth-child(odd) td {
 .BackButton {
     margin: 1rem 0;
 }
+
+/* =========================================================
+   Training card (whole card clickable, attendance in corner)
+   ========================================================= */
+
+.training {
+    position: relative;
+    padding-right: 2.2rem;
+}
+
+.training__link {
+    display: block;
+    color: inherit;
+    text-decoration: none;
+}
+
+.training__link::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+}
+
+.training__link small {
+    display: block;
+    font-size: 1.1rem;
+    opacity: 0.8;
+}
+
+.training__link:hover strong {
+    text-decoration: underline;
+}
+
+.training__attendance {
+    position: absolute;
+    top: 0.3rem;
+    right: 0.3rem;
+    margin: 0;
+    z-index: 2;
+    background: none;
+    padding: 0;
+    box-shadow: none;
+    border: none;   
+}
+
+/* =========================================================
+   Attendance check (tick / cross / empty)
+   ========================================================= */
+
+.attendance-check {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    padding: 0;
+    border: 1.5px solid currentColor;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--color-text-muted);
+    font-size: 1.1rem;
+    font-weight: 700;
+    line-height: 1;
+    opacity: 0.85;
+    cursor: default;
+    transition: opacity 0.15s, color 0.15s;
+}
+
+.attendance-check:hover {
+    opacity: 1;
+}
+
+.attendance-check--pending {
+    color: rgba(0, 0, 0, 0.35);
+}
+
+.attendance-check--present {
+    color: var(--color-success);
+    border-color: var(--color-success);
+}
+
+.attendance-check--absent {
+    color: var(--color-error);
+    border-color: var(--color-error);
+}
+
+/* =========================================================
+   Training info page
+   ========================================================= */
+
+.training-details p {
+    margin: 0.4rem 0;
+}
+
+.my-attendance {
+    margin: 1.5rem 0;
+}
+
+.my-attendance__form {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin: 0.5rem 0;
+    background: none;
+    padding: 0;
+    box-shadow: none;
+    border: none;    
+}
+
+.my-attendance__label {
+    font-weight: 600;
+}
+
+table.crew-attendance {
+    width: 100%;
+    max-width: 60rem;
+    border-collapse: collapse;
+    background: var(--color-surface);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    margin: 1rem 0;
+}
+
+table.crew-attendance th,
+table.crew-attendance td {
+    padding: 0.8rem 1rem;
+    border-bottom: 1px solid var(--color-border);
+    text-align: left;
+    font-size: 1.3rem;
+}
+
+table.crew-attendance th {
+    background: var(--color-main-dark);
+    color: white;
+}
+
+table.crew-attendance td .attendance-check {
+    vertical-align: middle;
+    margin-right: 0.5rem;
+}
