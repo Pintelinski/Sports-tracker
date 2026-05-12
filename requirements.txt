@@ -5,7 +5,7 @@ gunicorn>=21.2
 python-dotenv>=1.0
 djangorestframework>=3.15
 djangorestframework-simplejwt>=5.3
-psycopg2>=2.9
+psycopg2-binary>=2.9
 
 # VM/runtime requirements (installed on EduCloud VM)
 # - nodejs (Node 25.x recommended)
