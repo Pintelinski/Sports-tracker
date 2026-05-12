@@ -2,7 +2,9 @@
 
 {% block content %}
 
-<p><a href="{% url 'agenda' %}">← Back to agenda</a></p>
+<div class="BackButton">
+    <a href="{% url 'agenda' %}">&#10094; Back</a>
+</div>
 
 <h2>{{ training.title }}</h2>
 
