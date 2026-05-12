@@ -1,13 +1,13 @@
 {% extends 'second.html' %}
-{% load static %}
-{% block content %}
 
+{% block content %}
     <div class="landingPage">
         <h1>Welcome to Sports Tracker</h1>
         <p>By athletes, for athletes</p>
-    </div>
-    <div class="loginOrRegister">
+        <div class="loginOrRegister">
         <a href="{% url 'login' %}">Login</a>
         <a href="{% url 'register' %}">Register</a>
+        </div>
     </div>
+
 {% endblock content %}

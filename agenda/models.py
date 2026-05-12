@@ -5,10 +5,9 @@ from users.models import Profiles, Crew
 # Create your models here.
     
 class Training(models.Model):
-    INTENSITY_CHOICES = [('T1', 'Warm up'), ('T2', 'Easy'), ('T3', 'Aerobic'), ('T4', 'Threshold'), ('T5', 'Maximum')]
+    INTENSITY_CHOICES = [('T1', 'T1 - Warm up'), ('T2', 'T2 - Easy'), ('T3', 'T3 - Aerobic'), ('T4', 'T4 - Threshold'), ('T5', 'T5 - Maximum')]
 
     title = models.CharField(max_length=200)
-    description = models.TextField(blank=True)
     datetime = models.DateTimeField()
     duration = models.DurationField()
     description = models.TextField(blank=True, null=True)

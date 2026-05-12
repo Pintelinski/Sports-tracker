@@ -23,6 +23,9 @@ from django.conf.urls.static import static
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('agenda/', include('agenda.urls')),
+
+    path('api/', include('api.urls')),
+
     path('', include('users.urls')),
 ]
 

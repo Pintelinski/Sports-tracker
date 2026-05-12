@@ -1,8 +1,8 @@
 {% extends 'main.html' %}
-{% load static %}
 
 {% block content %}
 <h2>Agenda — week of {{ week_start|date:"D, j M Y" }}</h2>
+
 
 <h3>
 	<form method="get" id="agenda-filters">
@@ -16,6 +16,8 @@
 		<input type="hidden" name="start" value="{{ week_start_iso }}">
 	</form>
 </h3>
+<a href="{% url 'create-training' %}">Add training</a>
+
 
 <p>
 	<a href="?start={{ week_prev_iso }}&crew={{ selected_crew }}">◀ Previous week</a>
@@ -42,9 +44,18 @@
 					<td style="height:60px; vertical-align:top">
 						{% for t in day.trainings %}
 							{% if t.start.hour == h %}
-								<div style="border-left:4px solid #2b6cb0; padding-left:6px; margin-bottom:4px;">
-									<strong>{{ t.title }}</strong><br>
-									<small>{{ t.start|date:"H:i" }} • {{ t.crew.name }}</small>
+								<div class="training training--{{ t.intensity|lower }}">
+									<a href="{% url 'training-info' t.id %}" class="training__link">
+										<strong>{{ t.title }}</strong>
+										<small>{{ t.start|date:"H:i" }} • {{ t.crew.name }}</small>
+									</a>
+									<form method="post" action="{% url 'toggle-attendance' t.id %}" class="training__attendance">
+										{% csrf_token %}
+										<input type="hidden" name="next" value="{{ request.get_full_path }}">
+										<button type="submit" class="attendance-check attendance-check--{{ t.my_status }}" aria-label="Attendance: {{ t.my_status }}" title="Attendance: {{ t.my_status|title }}">
+											{% if t.my_status == 'present' %}&#10003;{% elif t.my_status == 'absent' %}&#10007;{% endif %}
+										</button>
+									</form>
 								</div>
 							{% endif %}
 						{% empty %}

@@ -4,8 +4,21 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 
+from rest_framework_simplejwt.tokens import RefreshToken
+
 from .forms import CustomUserCreationForm, ProfileForm
 from .models import Profiles
+
+
+def storeJwtInSession(request, user):
+    refresh = RefreshToken.for_user(user)
+    request.session['jwt_refresh'] = str(refresh)
+    request.session['jwt_access'] = str(refresh.access_token)
+
+
+def clearJwtFromSession(request):
+    request.session.pop('jwt_refresh', None)
+    request.session.pop('jwt_access', None)
 
 # Create your views here.
 
@@ -33,13 +46,18 @@ def loginUser(request):
 
         if user is not None:
             login(request, user)
+            storeJwtInSession(request, user)
             messages.success(request, 'User logged in succesfully')
             return redirect('agenda')
+        
+        else:
+            messages.error(request, 'Username or password is incorrect')
 
     return render(request, 'users/login.html')
 
 @login_required(login_url='login')
 def logoutUser(request):
+    clearJwtFromSession(request)
     logout(request)
     messages.info(request, 'User was logged out!')
     return redirect('landingPage')
@@ -58,6 +76,7 @@ def registerUser(request):
             messages.success(request, 'User was created succesfully')
 
             login(request, user)
+            storeJwtInSession(request, user)
             return redirect('editProfile')
         
         else:

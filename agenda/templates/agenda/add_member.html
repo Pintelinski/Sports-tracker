@@ -2,22 +2,31 @@
 
 {% block content %}
 
+<div class="BackButton">
+    <a href="{% url 'crew-info' crew.id %}">&#10094; Back</a>
+</div>
+
 <h2>Crew members of {{ crew.name }}:</h2>
-<h3>
+<ul class="profile-picker">
 {% for member in members %}
-    <a href="{% url 'user-profile' member.profile.id %}"><li>{{ member.profile }} - {{ member.role }}</li></a>
-    <br>
+    <li>
+        <a href="{% url 'user-profile' member.profile.id %}" class="crew-member">
+            <img src="{{ member.profile.profile_image.url }}" class="small-img"/>
+            <span class="crew-member__name">{{ member.profile }} - {{ member.role }}</span>
+        </a>
+    </li>
 {% endfor %}
-</h3>
+</ul>
 
 <h3>Add members</h3>
-<form method="POST" class="add-member-form">
+<form method="POST" class="basicForm">
     {% csrf_token %}
 
     {% if profiles %}
         <ul class="profile-picker">
         {% for user in profiles %}
             <li class="profile-picker__row">
+                <img src="{{ member.profile.profile_image.url }}" class="small-img"/>
                 <input type="checkbox"
                        id="profile-{{ user.id }}"
                        name="profile_ids"

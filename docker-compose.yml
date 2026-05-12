@@ -7,7 +7,7 @@ services:
     env_file: .env
     volumes:
       - ./static:/app/static:ro
-      - media_volume:/app/images
+      - ./static/images:/app/static/images
     expose:
       - "8000"
 
@@ -19,9 +19,5 @@ services:
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf
       - ./static:/app/static:ro
-      - media_volume:/app/images
     depends_on:
       - web
-
-volumes:
-  media_volume:

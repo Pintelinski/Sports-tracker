@@ -1,0 +1,63 @@
+{% extends 'main.html' %}
+
+{% block content %}
+
+<div class="BackButton">
+    <a href="{% url 'agenda' %}">&#10094; Back</a>
+</div>
+
+<h2>{{ training.title }}</h2>
+
+<div class="training-details">
+    <p><strong>Crew:</strong>
+        <a href="{% url 'crew-info' training.crew.id %}">{{ training.crew.name }}</a>
+    </p>
+    <p><strong>Intensity:</strong> {{ training.get_intensity_display }}</p>
+    <p><strong>Start:</strong> {{ training.datetime|date:"l j F Y, H:i" }}</p>
+    <p><strong>Duration:</strong> {{ training.duration }}</p>
+    {% if training.description %}
+        <p><strong>Description:</strong></p>
+        <p>{{ training.description|linebreaks }}</p>
+    {% endif %}
+</div>
+
+{% if my_profile %}
+<div class="my-attendance">
+    <h3>Your attendance</h3>
+    <form method="post" action="{% url 'toggle-attendance' training.id %}" class="my-attendance__form">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+        <button type="submit" class="attendance-check attendance-check--{{ my_status }}" aria-label="Attendance: {{ my_status }}" title="Attendance: {{ my_status|title }}">
+            {% if my_status == 'present' %}&#10003;{% elif my_status == 'absent' %}&#10007;{% endif %}
+        </button>
+        <span class="my-attendance__label">{{ my_status|title }}</span>
+    </form>
+</div>
+{% endif %}
+
+<h3>Crew attendance</h3>
+<table class="crew-attendance">
+    <thead>
+        <tr>
+            <th>Member</th>
+            <th>Role</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for entry in crew_attendance %}
+            <tr>
+                <td>{{ entry.profile.name|default:entry.profile.user }}</td>
+                <td>{{ entry.role }}</td>
+                <td>
+                    <span class="attendance-check attendance-check--{{ entry.status }}" aria-label="{{ entry.status }}">
+                        {% if entry.status == 'present' %}&#10003;{% elif entry.status == 'absent' %}&#10007;{% endif %}
+                    </span>
+                    {{ entry.status|title }}
+                </td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock content %}

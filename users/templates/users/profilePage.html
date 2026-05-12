@@ -1,7 +1,9 @@
 {% extends 'main.html' %}
 {% block content %}
 
+    <div class="BackButton">
     <a href="{% url 'agenda' %}" onclick="if (window.history.length > 1) { window.history.back(); return false; }">&#10094; Back</a>
+    </div>
     <h2>Profile page</h2>
     {% if is_owner %}
     <a href="{% url 'editProfile' %}">Edit profile</a>

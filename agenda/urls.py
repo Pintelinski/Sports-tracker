@@ -10,4 +10,8 @@ urlpatterns = [
     path('crew/<str:pk>/', views.crewInfo, name='crew-info'),
     path('crew/<str:pk>/add-member/', views.addMemberToCrew, name='add-member-to-crew'),
 
+    path('add-training/', views.createTraining, name='create-training'),
+    path('training/<str:pk>/info/', views.trainingInfo, name='training-info'),
+    path('training/<str:pk>/toggle-attendance/', views.toggleAttendance, name='toggle-attendance'),
+
 ]
