@@ -14,4 +14,6 @@ urlpatterns = [
     path('training/<str:pk>/info/', views.trainingInfo, name='training-info'),
     path('training/<str:pk>/toggle-attendance/', views.toggleAttendance, name='toggle-attendance'),
 
+    path('calendar/<uuid:token>.ics', views.personalCalendarFeed, name='personal-calendar-feed'),
+    path('crew/<str:pk>/calendar/<uuid:token>.ics', views.crewCalendarFeed, name='crew-calendar-feed'),
 ]

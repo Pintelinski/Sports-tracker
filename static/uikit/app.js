@@ -55,3 +55,43 @@ document.querySelectorAll('form.training__attendance').forEach(function (form) {
       });
   });
 });
+
+// Copy ICS feed URL to clipboard
+document.querySelectorAll('.calendar-sync').forEach(function (block) {
+  const input = block.querySelector('.calendar-sync__input');
+  const button = block.querySelector('.calendar-sync__copy');
+  if (!input || !button) return;
+
+  function flashCopied() {
+    const original = button.dataset.originalLabel || button.textContent;
+    button.dataset.originalLabel = original;
+    button.textContent = 'Copied';
+    button.classList.add('is-copied');
+    setTimeout(function () {
+      button.textContent = original;
+      button.classList.remove('is-copied');
+    }, 1500);
+  }
+
+  function fallbackCopy() {
+    input.removeAttribute('readonly');
+    input.focus();
+    input.select();
+    input.setSelectionRange(0, 99999);
+    try {
+      document.execCommand('copy');
+      flashCopied();
+    } catch (e) {
+      window.prompt('Copy this URL:', input.value);
+    }
+    input.setAttribute('readonly', 'readonly');
+  }
+
+  button.addEventListener('click', function () {
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(input.value).then(flashCopied).catch(fallbackCopy);
+    } else {
+      fallbackCopy();
+    }
+  });
+});

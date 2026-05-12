@@ -22,4 +22,15 @@
 <a href="{% url 'add-member-to-crew' crew.id %}"><p>Add members</p></a>
 {% endif %}
 
+{% if feed_url %}
+<div class="calendar-sync">
+    <h3>Sync with Google Calendar</h3>
+    <p>Copy this URL and add it in Google Calendar via <strong>Other calendars → From URL</strong>. Trainings will appear in your calendar and update automatically.</p>
+    <div class="calendar-sync__row">
+        <input type="text" readonly class="calendar-sync__input" value="{{ feed_url }}">
+        <button type="button" class="calendar-sync__copy" data-copy-target>Copy</button>
+    </div>
+</div>
+{% endif %}
+
 {% endblock content %}
