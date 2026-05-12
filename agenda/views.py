@@ -1,11 +1,15 @@
 from django.shortcuts import render, redirect
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse, JsonResponse, Http404
 from django.utils import timezone
 from datetime import timedelta, datetime, date
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.urls import reverse
 
 from django.views.decorators.http import require_POST
+import uuid
+
+from icalendar import Calendar, Event
 
 from .models import Training, Attendance
 from users.models import Profiles, Crew, CrewMembership
@@ -13,6 +17,34 @@ from users.forms import CrewForm
 from .forms import TrainingForm
 
 ATTENDANCE_CYCLE = {'pending': 'present', 'present': 'absent', 'absent': 'pending'}
+
+
+def ensureCalendarToken(profile):
+    if profile.calendar_token is None:
+        profile.calendar_token = uuid.uuid4()
+        profile.save(update_fields=['calendar_token'])
+    return profile.calendar_token
+
+
+def buildIcs(trainings, calendar_name):
+    cal = Calendar()
+    cal.add('prodid', '-//Sportstracker//Crew agenda//EN')
+    cal.add('version', '2.0')
+    cal.add('x-wr-calname', calendar_name)
+
+    for t in trainings:
+        event = Event()
+        event.add('uid', f'training-{t.id}@sportstracker')
+        event.add('summary', f'{t.title} ({t.crew.name})')
+        event.add('dtstart', t.datetime)
+        event.add('dtend', t.datetime + t.duration)
+        event.add('dtstamp', timezone.now())
+        if t.description:
+            event.add('description', t.description)
+        event.add('categories', [t.get_intensity_display()])
+        cal.add_component(event)
+
+    return cal.to_ical()
 
 @login_required(login_url='login')
 def bodystats(request):
@@ -83,10 +115,14 @@ def agenda(request):
                 'my_status': my_attendance_by_training.get(t.id, 'pending'),
             })
 
+    feed_url = None
     if request.user.is_authenticated:
         try:
             profile = Profiles.objects.get(user=request.user)
             crews_for_selector = profile.crews.all()
+            token = ensureCalendarToken(profile)
+            path = reverse('personal-calendar-feed', args=[token])
+            feed_url = request.build_absolute_uri(path)
         except Profiles.DoesNotExist:
             crews_for_selector = Crew.objects.none()
     else:
@@ -115,6 +151,7 @@ def agenda(request):
         'week_next_iso': week_next_iso,
         'crews': crews_for_selector,
         'selected_crew': crew_param,
+        'feed_url': feed_url,
     }
 
     return render(request, 'agenda/agenda.html', context)
@@ -154,8 +191,52 @@ def crewInfo(request, pk):
     crew = Crew.objects.get(id=pk)
     members = CrewMembership.objects.filter(crew=crew).select_related('profile')
 
-    context = {'crew': crew, 'members': members}
+    feed_url = None
+    if request.user.is_authenticated:
+        try:
+            profile = Profiles.objects.get(user=request.user)
+            token = ensureCalendarToken(profile)
+            path = reverse('crew-calendar-feed', args=[crew.id, token])
+            feed_url = request.build_absolute_uri(path)
+        except Profiles.DoesNotExist:
+            pass
+
+    context = {'crew': crew, 'members': members, 'feed_url': feed_url}
     return render(request, 'agenda/crewInfo.html', context)
+
+
+def crewCalendarFeed(request, pk, token):
+    try:
+        profile = Profiles.objects.get(calendar_token=token)
+    except Profiles.DoesNotExist:
+        raise Http404('Invalid calendar token')
+
+    try:
+        crew = profile.crews.get(id=pk)
+    except Crew.DoesNotExist:
+        raise Http404('Not a member of this crew')
+
+    trainings = Training.objects.filter(crew=crew).select_related('crew')
+    ics = buildIcs(trainings, calendar_name=f'{crew.name} trainings')
+
+    response = HttpResponse(ics, content_type='text/calendar; charset=utf-8')
+    response['Content-Disposition'] = f'inline; filename="crew-{crew.id}.ics"'
+    return response
+
+
+def personalCalendarFeed(request, token):
+    try:
+        profile = Profiles.objects.get(calendar_token=token)
+    except Profiles.DoesNotExist:
+        raise Http404('Invalid calendar token')
+
+    user_crews = profile.crews.all()
+    trainings = Training.objects.filter(crew__in=user_crews).select_related('crew')
+    ics = buildIcs(trainings, calendar_name='My Sportstracker agenda')
+
+    response = HttpResponse(ics, content_type='text/calendar; charset=utf-8')
+    response['Content-Disposition'] = f'inline; filename="my-agenda.ics"'
+    return response
 
 
 @login_required(login_url='login')

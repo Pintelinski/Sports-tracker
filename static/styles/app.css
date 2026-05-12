@@ -919,3 +919,53 @@ table.crew-attendance td .attendance-check {
     vertical-align: middle;
     margin-right: 0.5rem;
 }
+
+/* =========================================================
+   Calendar sync (ICS feed URL)
+   ========================================================= */
+
+.calendar-sync {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+    max-width: 60rem;
+}
+
+.calendar-sync h3 {
+    margin-top: 0;
+    font-size: 1.8rem;
+}
+
+.calendar-sync p {
+    color: var(--color-text-muted);
+    font-size: 1.3rem;
+    margin: 0.4rem 0 1rem;
+}
+
+.calendar-sync__row {
+    display: flex;
+    gap: 0.6rem;
+}
+
+.calendar-sync__input {
+    flex: 1;
+    padding: 0.7rem 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: var(--color-white-light);
+    color: var(--color-text);
+    font-family: monospace;
+    font-size: 1.2rem;
+}
+
+.calendar-sync__copy {
+    padding: 0.7rem 1.4rem;
+    font-size: 1.3rem;
+}
+
+.calendar-sync__copy.is-copied {
+    background: var(--color-accent-dark);
+}
