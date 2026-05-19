@@ -8,13 +8,14 @@ from django.urls import reverse
 
 from django.views.decorators.http import require_POST
 import uuid
+import json
 
 from icalendar import Calendar, Event
 
-from .models import Training, Attendance
+from .models import Training, Attendance, BodyStats
 from users.models import Profiles, Crew, CrewMembership
 from users.forms import CrewForm
-from .forms import TrainingForm
+from .forms import TrainingForm, BodyStatsForm
 
 ATTENDANCE_CYCLE = {'pending': 'present', 'present': 'absent', 'absent': 'pending'}
 
@@ -45,10 +46,6 @@ def buildIcs(trainings, calendar_name):
         cal.add_component(event)
 
     return cal.to_ical()
-
-@login_required(login_url='login')
-def bodystats(request):
-    return render(request, 'agenda/bodystats.html')
 
 
 @login_required(login_url='login')
@@ -116,6 +113,7 @@ def agenda(request):
             })
 
     feed_url = None
+    needs_bodystats_today = False
     if request.user.is_authenticated:
         try:
             profile = Profiles.objects.get(user=request.user)
@@ -123,6 +121,7 @@ def agenda(request):
             token = ensureCalendarToken(profile)
             path = reverse('personal-calendar-feed', args=[token])
             feed_url = request.build_absolute_uri(path)
+            needs_bodystats_today = not BodyStats.objects.filter(profile=profile, date=today).exists()
         except Profiles.DoesNotExist:
             crews_for_selector = Crew.objects.none()
     else:
@@ -152,6 +151,7 @@ def agenda(request):
         'crews': crews_for_selector,
         'selected_crew': crew_param,
         'feed_url': feed_url,
+        'needs_bodystats_today': needs_bodystats_today,
     }
 
     return render(request, 'agenda/agenda.html', context)
@@ -192,16 +192,18 @@ def crewInfo(request, pk):
     members = CrewMembership.objects.filter(crew=crew).select_related('profile')
 
     feed_url = None
+    is_member = False
     if request.user.is_authenticated:
         try:
             profile = Profiles.objects.get(user=request.user)
             token = ensureCalendarToken(profile)
             path = reverse('crew-calendar-feed', args=[crew.id, token])
             feed_url = request.build_absolute_uri(path)
+            is_member = CrewMembership.objects.filter(crew=crew, profile=profile).exists()
         except Profiles.DoesNotExist:
             pass
 
-    context = {'crew': crew, 'members': members, 'feed_url': feed_url}
+    context = {'crew': crew, 'members': members, 'feed_url': feed_url, 'is_member': is_member}
     return render(request, 'agenda/crewInfo.html', context)
 
 
@@ -243,6 +245,11 @@ def personalCalendarFeed(request, token):
 def addMemberToCrew(request, pk):
     crew = Crew.objects.get(id=pk)
     members = CrewMembership.objects.filter(crew=crew).select_related('profile')
+
+    is_member = CrewMembership.objects.filter(crew=crew, profile__user=request.user).exists()
+    if not is_member:
+        messages.error(request, 'Only members of this crew can add other members.')
+        return redirect('crew-info', crew.id)
 
     if request.method == 'POST':
         selected_ids = request.POST.getlist('profile_ids')
@@ -368,3 +375,144 @@ def toggleAttendance(request, pk):
     if next_url:
         return redirect(next_url)
     return redirect('agenda')
+
+@login_required(login_url='login')
+def editTraining(request, pk):
+    training = Training.objects.get(id=pk)
+
+    if request.method == 'POST':
+        form = TrainingForm(request.POST, instance=training)
+        if form.is_valid():
+            training = form.save(commit=False)
+
+            date = form.cleaned_data['date']
+            start_time = form.cleaned_data['start_time']
+            minutes = form.cleaned_data['duration_minutes']
+
+            naive_dt = datetime.combine(date, start_time)
+            training.datetime = timezone.make_aware(naive_dt, timezone.get_current_timezone())
+            training.duration = timedelta(minutes=minutes)
+
+            training.save()
+
+            messages.success(request, 'Training was updated successfully')
+
+            return redirect('training-info', training.id)
+    else:
+        local_dt = timezone.localtime(training.datetime)
+        initial = {
+            'date': local_dt.date(),
+            'start_time': local_dt.time(),
+            'duration_minutes': int(training.duration.total_seconds() // 60),
+        }
+        form = TrainingForm(instance=training, initial=initial)
+
+    context = {'form': form, 'training': training}
+    return render(request, 'agenda/edit_training.html', context)
+
+@login_required(login_url='login')  
+def deleteTraining(request, pk):
+    training = Training.objects.get(id=pk)
+    crew_id = training.crew.id
+    if request.method == 'POST':
+        training.delete()
+        messages.success(request, 'Training was deleted successfully')
+        return redirect('agenda')
+    context = {'object': training}    
+    return render(request, 'delete_template.html', context)
+
+
+@login_required(login_url='login')
+def bodystats(request):
+    try:
+        profile = Profiles.objects.get(user=request.user)
+    except Profiles.DoesNotExist:
+        messages.error(request, 'No profile found for your account.')
+        return redirect('agenda')
+
+    today = timezone.localdate()
+
+    if request.method == 'POST':
+        form = BodyStatsForm(request.POST)
+        if form.is_valid():
+            stats = form.save(commit=False)
+            stats.profile = profile
+            stats.date = today
+            try:
+                existing = BodyStats.objects.get(profile=profile, date=today)
+                existing.weight = stats.weight
+                existing.resting_heartrate = stats.resting_heartrate
+                existing.hrv = stats.hrv
+                existing.body_battery = stats.body_battery
+                existing.save()
+                messages.success(request, f'Body stats for {today} updated')
+            except BodyStats.DoesNotExist:
+                stats.save()
+                messages.success(request, f'Body stats for {today} saved')
+            return redirect('bodystats')
+    else:
+        form = BodyStatsForm()
+
+    history = BodyStats.objects.filter(profile=profile).order_by('-date')
+
+    chart_entries = list(history.order_by('date'))
+    chart_labels = [s.date.isoformat() for s in chart_entries]
+
+    def metric_series(attr):
+        return [float(getattr(s, attr)) if getattr(s, attr) is not None else None for s in chart_entries]
+
+    chart_data = {
+        'labels': chart_labels,
+        'weight': metric_series('weight'),
+        'resting_heartrate': metric_series('resting_heartrate'),
+        'hrv': metric_series('hrv'),
+        'body_battery': metric_series('body_battery'),
+    }
+
+    today_stats = None
+    try:
+        today_stats = BodyStats.objects.get(profile=profile, date=today)
+    except BodyStats.DoesNotExist:
+        pass
+
+    context = {
+        'form': form,
+        'history': history,
+        'chart_data_json': json.dumps(chart_data),
+        'today_stats': today_stats,
+    }
+    return render(request, 'agenda/bodystats.html', context)
+
+
+@login_required(login_url='login')
+@require_POST
+def editBodystats(request, pk):
+    try:
+        profile = Profiles.objects.get(user=request.user)
+    except Profiles.DoesNotExist:
+        messages.error(request, 'No profile found for your account.')
+        return redirect('agenda')
+
+    try:
+        stats = BodyStats.objects.get(id=pk, profile=profile)
+    except BodyStats.DoesNotExist:
+        messages.error(request, 'Body stats entry not found.')
+        return redirect('bodystats')
+
+    def parse_decimal(raw):
+        return raw if raw not in (None, '') else None
+
+    def parse_int(raw):
+        return int(raw) if raw not in (None, '') else None
+
+    try:
+        stats.weight = parse_decimal(request.POST.get('weight'))
+        stats.resting_heartrate = parse_int(request.POST.get('resting_heartrate'))
+        stats.hrv = parse_int(request.POST.get('hrv'))
+        stats.body_battery = parse_int(request.POST.get('body_battery'))
+        stats.save()
+        messages.success(request, f'Body stats for {stats.date} updated')
+    except (ValueError, TypeError):
+        messages.error(request, 'Invalid number entered.')
+
+    return redirect('bodystats')

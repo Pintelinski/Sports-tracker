@@ -32,3 +32,20 @@ class Attendance(models.Model):
 
     def __str__(self):
         return f"{self.athlete.name} - {self.training.title} ({self.status})"
+
+
+class BodyStats(models.Model):
+    profile = models.ForeignKey(Profiles, on_delete=models.CASCADE, related_name='bodystats')
+    date = models.DateField()
+    weight = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    resting_heartrate = models.IntegerField(null=True, blank=True)
+    hrv = models.IntegerField(null=True, blank=True)
+    body_battery = models.IntegerField(null=True, blank=True)
+    id = models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True, editable=False)
+
+    class Meta:
+        unique_together = ('profile', 'date')
+        ordering = ['-date']
+
+    def __str__(self):
+        return f"{self.profile} - {self.date}"

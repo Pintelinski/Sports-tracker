@@ -969,3 +969,118 @@ table.crew-attendance td .attendance-check {
 .calendar-sync__copy.is-copied {
     background: var(--color-accent-dark);
 }
+
+/* =========================================================
+   Bodystats reminder banner (on agenda page)
+   ========================================================= */
+
+.bodystats-reminder {
+    background: var(--color-sub-light);
+    border: 1px solid var(--color-sub);
+    color: var(--color-sub-dark);
+    border-radius: var(--radius);
+    padding: 1rem 1.4rem;
+    margin: 0 0 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.bodystats-reminder__link {
+    background: var(--color-sub);
+    color: white;
+    padding: 0.5rem 1.2rem;
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+}
+
+.bodystats-reminder__link:hover {
+    background: var(--color-sub-dark);
+    color: white;
+}
+
+/* =========================================================
+   Bodystats page: today's form, charts, history table
+   ========================================================= */
+
+.bodystats-form-wrap {
+    margin-bottom: 2rem;
+}
+
+.bodystats-form {
+    margin: 0 0 1.5rem !important;
+}
+
+.bodystats-charts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.5rem;
+    margin: 1rem 0 2rem;
+}
+
+@media (max-width: 720px) {
+    .bodystats-charts { grid-template-columns: 1fr; }
+}
+
+.bodystats-chart {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 1rem;
+    height: 24rem;
+    position: relative;
+}
+
+/* Empty per-row forms above the table — needed because inputs reference them
+   via form="..." attribute. Hide them visually but keep them in the DOM. */
+.bodystats-row-form {
+    display: none !important;
+}
+
+table.bodystats-history {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--color-surface);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    margin: 1rem 0;
+}
+
+table.bodystats-history th,
+table.bodystats-history td {
+    padding: 0.6rem 0.8rem;
+    border-bottom: 1px solid var(--color-border);
+    text-align: left;
+    font-size: 1.3rem;
+    vertical-align: middle;
+}
+
+table.bodystats-history th {
+    background: var(--color-main-dark);
+    color: white;
+    font-weight: 700;
+}
+
+.input--cell {
+    width: 8rem;
+    padding: 0.4rem 0.6rem;
+    font-size: 1.3rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: var(--color-surface);
+}
+
+.btn--sm {
+    padding: 0.4rem 1rem;
+    font-size: 1.2rem;
+}
+
+.form__error {
+    color: var(--color-error);
+    font-size: 1.2rem;
+    margin: 0.3rem 0 0;
+}

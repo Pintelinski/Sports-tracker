@@ -4,6 +4,7 @@ from . import views
 urlpatterns = [
     path('', views.agenda, name="agenda"),
     path('bodystats/', views.bodystats, name='bodystats'),
+    path('bodystats/<uuid:pk>/edit/', views.editBodystats, name='edit-bodystats'),
     path('crews/', views.crewsPage, name='crews'),
 
     path('create-crew/', views.createCrew, name='create-crew'),
@@ -11,6 +12,8 @@ urlpatterns = [
     path('crew/<str:pk>/add-member/', views.addMemberToCrew, name='add-member-to-crew'),
 
     path('add-training/', views.createTraining, name='create-training'),
+    path('edit-training/<str:pk>/', views.editTraining, name='edit-training'),
+    path('delete-training/<str:pk>/', views.deleteTraining, name='delete-training'),
     path('training/<str:pk>/info/', views.trainingInfo, name='training-info'),
     path('training/<str:pk>/toggle-attendance/', views.toggleAttendance, name='toggle-attendance'),
 

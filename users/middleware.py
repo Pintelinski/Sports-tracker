@@ -1,5 +1,5 @@
 from django.contrib.auth import logout
-from rest_framework_simplejwt.tokens import AccessToken
+from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
 
 
@@ -11,13 +11,13 @@ class JWTSessionMiddleware:
 
     def __call__(self, request):
         if request.user.is_authenticated:
-            access_str = request.session.get('jwt_access')
+            refresh_str = request.session.get('jwt_refresh')
 
-            if not access_str:
+            if not refresh_str:
                 logout(request)
             else:
                 try:
-                    AccessToken(access_str)
+                    RefreshToken(refresh_str)
                 except TokenError:
                     request.session.pop('jwt_refresh', None)
                     request.session.pop('jwt_access', None)
