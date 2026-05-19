@@ -18,7 +18,7 @@
 {% endfor %}
 </ul>
 
-{% if request.user.is_authenticated %}
+{% if is_member %}
 <a href="{% url 'add-member-to-crew' crew.id %}"><p>Add members</p></a>
 {% endif %}
 

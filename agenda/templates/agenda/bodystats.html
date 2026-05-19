@@ -1,4 +1,110 @@
 {% extends 'main.html' %}
 {% block content %}
 
+<h2>Body stats</h2>
+
+{% if not today_stats %}
+<div class="bodystats-form-wrap">
+    <h3>Log today's stats</h3>
+    <form method="post" class="basicForm">
+        {% csrf_token %}
+        {% for field in form %}
+            <div class="form__field">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% for error in field.errors %}
+                    <p class="form__error">{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endfor %}
+        <button type="submit" class="btn btn--sub btn--lg">Save</button>
+    </form>
+</div>
+{% endif %}
+
+<h3>Trends</h3>
+<div class="bodystats-charts">
+    <div class="bodystats-chart"><canvas id="chart-weight"></canvas></div>
+    <div class="bodystats-chart"><canvas id="chart-rhr"></canvas></div>
+    <div class="bodystats-chart"><canvas id="chart-hrv"></canvas></div>
+    <div class="bodystats-chart"><canvas id="chart-bb"></canvas></div>
+</div>
+
+<h3>History</h3>
+{% if history %}
+{% for stats in history %}
+<form method="post" action="{% url 'edit-bodystats' stats.id %}" id="bs-form-{{ stats.id }}" class="bodystats-row-form"></form>
+{% endfor %}
+
+<table class="bodystats-history">
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Weight (kg)</th>
+            <th>Resting HR (bpm)</th>
+            <th>HRV (ms)</th>
+            <th>Body battery</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for stats in history %}
+            <tr>
+                <td>{{ stats.date|date:"j M Y" }}</td>
+                <td>
+                    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}" form="bs-form-{{ stats.id }}">
+                    <input type="number" step="0.01" min="0" name="weight" value="{{ stats.weight|default_if_none:'' }}" class="input input--cell" form="bs-form-{{ stats.id }}">
+                </td>
+                <td><input type="number" min="0" name="resting_heartrate" value="{{ stats.resting_heartrate|default_if_none:'' }}" class="input input--cell" form="bs-form-{{ stats.id }}"></td>
+                <td><input type="number" min="0" name="hrv" value="{{ stats.hrv|default_if_none:'' }}" class="input input--cell" form="bs-form-{{ stats.id }}"></td>
+                <td><input type="number" min="0" max="100" name="body_battery" value="{{ stats.body_battery|default_if_none:'' }}" class="input input--cell" form="bs-form-{{ stats.id }}"></td>
+                <td><button type="submit" class="btn btn--sm" form="bs-form-{{ stats.id }}">Save</button></td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>No stats yet. Log today's to start tracking.</p>
+{% endif %}
+
+<script id="bodystats-chart-data" type="application/json">{{ chart_data_json|safe }}</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<script>
+(function () {
+  const data = JSON.parse(document.getElementById('bodystats-chart-data').textContent);
+  if (!data.labels.length) return;
+
+  function lineChart(canvasId, label, values, color) {
+    const ctx = document.getElementById(canvasId);
+    if (!ctx) return;
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: data.labels,
+        datasets: [{
+          label: label,
+          data: values,
+          borderColor: color,
+          backgroundColor: color + '33',
+          spanGaps: true,
+          tension: 0.2,
+          pointRadius: 3,
+        }],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false }, title: { display: true, text: label } },
+        scales: { y: { beginAtZero: false } },
+      },
+    });
+  }
+
+  lineChart('chart-weight', 'Weight (kg)', data.weight, '#14b8a6');
+  lineChart('chart-rhr', 'Resting HR (bpm)', data.resting_heartrate, '#f97316');
+  lineChart('chart-hrv', 'HRV (ms)', data.hrv, '#a3e635');
+  lineChart('chart-bb', 'Body battery', data.body_battery, '#0f766e');
+})();
+</script>
+
 {% endblock content %}

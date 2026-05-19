@@ -1,6 +1,13 @@
 {% extends 'main.html' %}
 
 {% block content %}
+{% if needs_bodystats_today %}
+<div class="bodystats-reminder">
+    <strong>You haven't logged your body stats today.</strong>
+    <a href="{% url 'bodystats' %}" class="bodystats-reminder__link">Log them now &rarr;</a>
+</div>
+{% endif %}
+
 <h2>Agenda — week of {{ week_start|date:"D, j M Y" }}</h2>
 
 
@@ -66,4 +73,6 @@
 		{% endfor %}
 	</tbody>
 </table>
+
+<iframe src="https://calendar.google.com/calendar/embed?src=vntlro2bht3han0mjjgvtkqp2a2ejsji%40import.calendar.google.com&ctz=Europe%2FAmsterdam" style="border: 0" width="800" height="600" frameborder="0" scrolling="no"></iframe>
 {% endblock content %}
