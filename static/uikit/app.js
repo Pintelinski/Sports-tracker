@@ -95,3 +95,13 @@ document.querySelectorAll('.calendar-sync').forEach(function (block) {
     }
   });
 });
+
+// Bodystats history rows: click Edit to swap to inputs; Save submits the row's form
+document.querySelectorAll('.bodystats-row').forEach(function (row) {
+  const editBtn = row.querySelector('[data-action="edit"]');
+  if (!editBtn) return;
+
+  editBtn.addEventListener('click', function () {
+    row.classList.add('is-editing');
+  });
+});
