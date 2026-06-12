@@ -13,9 +13,12 @@ module.exports = defineConfig({
 
   use: {
     baseURL: process.env.BASE_URL || 'http://localhost:8000',
-    trace: 'retain-on-failure',
-    screenshot: 'only-on-failure',
-    video: 'retain-on-failure',
+    // Always keep evidence — pass or fail. The artifacts get uploaded by the
+    // GitHub Actions workflow, so a passing run still has screenshots/videos
+    // to download as proof the feature works.
+    trace: 'on',
+    screenshot: 'on',
+    video: 'on',
     actionTimeout: 10_000,
     navigationTimeout: 15_000,
   },
