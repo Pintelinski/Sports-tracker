@@ -33,7 +33,7 @@ test('login flow lands on the agenda page', async ({ page }) => {
 
 test('logging today\'s body stats shows the entry in the history table', async ({ page }) => {
   await loginAsTestUser(page);
-  await page.goto('/bodystats/');
+  await page.goto('/agenda/bodystats/');
 
   // The "Log today's stats" form-wrap is only rendered when today has not been
   // logged yet. Scoped to .bodystats-form-wrap so we don't accidentally match
