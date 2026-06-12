@@ -11,7 +11,7 @@ jobs:
     steps:
       - name: Check secrets exist
         env:
-          PRODUCTION_URL: ${{ secrets.HOST }}
+          HOST: ${{ secrets.HOST }}
           E2E_USERNAME: ${{ secrets.E2E_USERNAME }}
           E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
         run: |
@@ -34,9 +34,9 @@ jobs:
 
       - name: Wait for production to be reachable
         env:
-          PRODUCTION_URL: ${{ secrets.HOST }}
+          HOST: ${{ secrets.HOST }}
         run: |
-          curl --fail --location --retry 5 --retry-delay 10 "$HOST"
+          curl --fail --location --retry 5 --retry-delay 10 "http://$HOST"
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -53,7 +53,7 @@ jobs:
 
       - name: Run smoke tests
         env:
-          BASE_URL: ${{ secrets.HOST }}
+          BASE_URL: http://${{ secrets.HOST }}
           E2E_USERNAME: ${{ secrets.E2E_USERNAME }}
           E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
           CI: "true"
