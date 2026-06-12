@@ -1,0 +1,78 @@
+name: E2E Playwright tests
+
+on:
+  workflow_dispatch:
+
+jobs:
+  checkvars:
+    name: Checking variables
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check secrets exist
+        env:
+          PRODUCTION_URL: ${{ secrets.PRODUCTION_URL }}
+          E2E_USERNAME: ${{ secrets.E2E_USERNAME }}
+          E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
+        run: |
+          test -n "$PRODUCTION_URL" || (echo "PRODUCTION_URL is empty" && exit 1)
+          test -n "$E2E_USERNAME" || (echo "E2E_USERNAME is empty" && exit 1)
+          test -n "$E2E_PASSWORD" || (echo "E2E_PASSWORD is empty" && exit 1)
+          echo "Secrets are present"
+
+  e2e:
+    name: Playwright smoke tests
+    needs: checkvars
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: e2e
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Wait for production to be reachable
+        env:
+          PRODUCTION_URL: ${{ secrets.PRODUCTION_URL }}
+        run: |
+          curl --fail --location --retry 5 --retry-delay 10 "$PRODUCTION_URL"
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: e2e/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run smoke tests
+        env:
+          BASE_URL: ${{ secrets.PRODUCTION_URL }}
+          E2E_USERNAME: ${{ secrets.E2E_USERNAME }}
+          E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
+          CI: "true"
+        run: npm test
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: e2e/playwright-report/
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Upload Playwright test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-test-results
+          path: e2e/test-results/
+          retention-days: 7
+          if-no-files-found: ignore
