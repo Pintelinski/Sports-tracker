@@ -35,15 +35,15 @@ test('logging today\'s body stats shows the entry in the history table', async (
   await loginAsTestUser(page);
   await page.goto('/bodystats/');
 
-  // The "Log today's stats" form is only present when today has not been logged
-  // yet. If a previous test run already saved one, the form is hidden — the
-  // assertion at the end is the same in both branches.
-  const saveButton = page.getByRole('button', { name: 'Save' });
-  if (await saveButton.isVisible().catch(() => false)) {
-    await page.fill('input[name="weight"]', '72.5');
-    await saveButton.click();
-    // Form submits and redirects back to /bodystats/.
-    await expect(page).toHaveURL(/\/bodystats\/?$/);
+  // The "Log today's stats" form-wrap is only rendered when today has not been
+  // logged yet. Scoped to .bodystats-form-wrap so we don't accidentally match
+  // the per-row Save buttons in the history table.
+  const todayForm = page.locator('.bodystats-form-wrap');
+  if (await todayForm.isVisible().catch(() => false)) {
+    await page.locator('.bodystats-form-wrap input[name="weight"]').fill('72.5');
+    await todayForm.locator('button[type="submit"]').click();
+    // After save the form-wrap is gone (today_stats is now set).
+    await expect(todayForm).toBeHidden();
   }
 
   // Today's row must now exist in the history table — date format from the
